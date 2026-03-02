@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0f14">
+<title>⚡ AI Toolbox</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: Georgia, 'Times New Roman', serif; background: #0f0f14; color: #e8e4d9; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-bottom: 1px solid #2a2a3e; padding: 20px 16px 16px; position: sticky; top: 0; z-index: 50; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .header .meta { font-size: 11px; color: #8888aa; margin-top: 3px; font-family: sans-serif; }
+  .btn-add { background: #6EE7B7; color: #0f0f14; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 700; cursor: pointer; font-size: 13px; white-space: nowrap; }
+  .search-bar { width: 100%; background: #0f0f14; border: 1px solid #2a2a3e; border-radius: 8px; padding: 10px 14px; color: #e8e4d9; font-size: 14px; outline: none; font-family: sans-serif; }
+  .search-bar::placeholder { color: #555; }
+
+  /* TABS */
+  .tabs-wrap { overflow-x: auto; padding: 14px 16px 0; scrollbar-width: none; }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+  .tabs { display: flex; gap: 8px; min-width: max-content; padding-bottom: 14px; }
+  .tab { background: #1a1a2e; color: #aaa; border: 1px solid #2a2a3e; border-radius: 20px; padding: 7px 14px; cursor: pointer; font-size: 13px; font-family: sans-serif; white-space: nowrap; transition: all 0.15s; }
+  .tab.active { color: #0f0f14; font-weight: 700; }
+
+  /* CONTENT */
+  .content { padding: 12px 16px 80px; }
+
+  /* CARDS */
+  .card { background: #1a1a2e; border: 1px solid #2a2a3e; border-radius: 10px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+  .card.open { border-color: var(--cat-color, #6EE7B7); }
+  .card-header { padding: 14px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .card-left { flex: 1; }
+  .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .card-tag { background: #0f0f14; border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 700; font-family: sans-serif; border: 1px solid var(--cat-color, #6EE7B7); color: var(--cat-color, #6EE7B7); }
+  .card-name { font-weight: 700; font-size: 15px; color: #fff; }
+  .card-company { color: #8888aa; font-size: 13px; font-family: sans-serif; }
+  .card-highlight { color: #aaa; font-size: 13px; font-family: sans-serif; line-height: 1.4; }
+  .card-arrow { color: #555; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+  .card-body { border-top: 1px solid #2a2a3e; padding: 14px 16px; background: #141424; }
+  .card-body ul { padding-left: 18px; }
+  .card-body li { color: #c8c4b9; font-size: 13px; margin-bottom: 6px; line-height: 1.5; font-family: sans-serif; }
+  .btn-delete { margin-top: 12px; background: none; border: 1px solid #3a2a2a; color: #884444; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 12px; font-family: sans-serif; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: flex-end; justify-content: center; padding: 0; }
+  .modal { background: #1a1a2e; border-radius: 16px 16px 0 0; padding: 24px 20px 36px; width: 100%; max-height: 90vh; overflow-y: auto; border-top: 1px solid #2a2a3e; }
+  .modal-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .modal-tab { flex: 1; background: #0f0f14; color: #aaa; border: none; border-radius: 6px; padding: 9px; cursor: pointer; font-weight: 700; font-size: 13px; font-family: sans-serif; }
+  .modal-tab.active { background: #6EE7B7; color: #0f0f14; }
+  .field { margin-bottom: 14px; }
+  .field label { font-size: 12px; color: #8888aa; display: block; margin-bottom: 5px; font-family: sans-serif; }
+  .field input, .field select, .field textarea { width: 100%; background: #0f0f14; border: 1px solid #2a2a3e; border-radius: 6px; padding: 10px 12px; color: #e8e4d9; font-size: 14px; font-family: sans-serif; outline: none; }
+  .field textarea { resize: vertical; min-height: 90px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .btn-save { flex: 1; background: #6EE7B7; color: #0f0f14; border: none; border-radius: 8px; padding: 12px; font-weight: 700; cursor: pointer; font-size: 15px; }
+  .btn-cancel { background: #0f0f14; color: #aaa; border: 1px solid #2a2a3e; border-radius: 8px; padding: 12px 18px; cursor: pointer; font-size: 14px; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; color: #555; font-size: 14px; margin-top: 50px; font-family: sans-serif; }
+
+  /* SAVED TOAST */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #064e3b; color: #6EE7B7; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-family: sans-serif; font-weight: 700; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 24px; right: 20px; background: #6EE7B7; color: #0f0f14; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 26px; cursor: pointer; box-shadow: 0 4px 20px rgba(110,231,183,0.3); z-index: 40; display: flex; align-items: center; justify-content: center; }
+
+  .search-result-cat { font-size: 11px; color: #555; font-family: sans-serif; margin-left: 4px; }
+  .results-meta { font-size: 12px; color: #8888aa; font-family: sans-serif; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>⚡ AI Toolbox</h1>
+      <div class="meta" id="meta-info">Loading...</div>
+    </div>
+    <button class="btn-add" onclick="openModal()">+ Add</button>
+  </div>
+  <input class="search-bar" type="search" placeholder="🔍 Search tools, models, features..." id="search-input" oninput="handleSearch()" />
+</div>
+
+<div class="tabs-wrap" id="tabs-wrap">
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<div class="content" id="content"></div>
+
+<button class="fab" onclick="openModal()" title="Add entry">＋</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="handleOverlayClick(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="mtab-item" onclick="switchModalTab('item')">Add Tool / Model</button>
+      <button class="modal-tab" id="mtab-cat" onclick="switchModalTab('cat')">Add Category</button>
+    </div>
+
+    <!-- Item Form -->
+    <div id="form-item">
+      <div class="field"><label>Name *</label><input id="f-name" placeholder="e.g. GPT-5" /></div>
+      <div class="field"><label>Company</label><input id="f-company" placeholder="e.g. OpenAI" /></div>
+      <div class="field"><label>One-line highlight</label><input id="f-highlight" placeholder="e.g. Best reasoning model yet" /></div>
+      <div class="field"><label>Tag</label><input id="f-tag" placeholder="e.g. 🧠 Reasoning" /></div>
+      <div class="field"><label>Details (one per line)</label><textarea id="f-details" placeholder="Feature 1&#10;Feature 2&#10;Feature 3"></textarea></div>
+      <div class="field"><label>Category *</label><select id="f-category"></select></div>
+      <div class="modal-actions">
+        <button class="btn-save" onclick="saveItem()">Save Entry</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Category Form -->
+    <div id="form-cat" style="display:none">
+      <div class="field"><label>ID (no spaces) *</label><input id="fc-id" placeholder="e.g. audio" /></div>
+      <div class="field"><label>Label *</label><input id="fc-label" placeholder="e.g. 🎵 Audio AI" /></div>
+      <div class="field"><label>Color</label><input type="color" id="fc-color" value="#6EE7B7" style="height:44px;cursor:pointer;" /></div>
+      <div class="modal-actions">
+        <button class="btn-save" onclick="saveCategory()">Add Category</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Saved</div>
+
+<script>
+const INITIAL = {
+  lastUpdated: "March 2026",
+  categories: [
+    {
+      id: "models", label: "🧠 AI Models", color: "#6EE7B7",
+      items: [
+        { name: "Claude Opus 4.6", company: "Anthropic", highlight: "Best-in-class reasoning & coding", tag: "🏆 SOTA", details: ["Beats GPT-4.1 by 144 ELO on finance/legal benchmarks","65.4% on TerminalBench 2.0 — highest coding score in industry","1M token context window (first Opus model to get this)","Pricing unchanged: $5/M input tokens","Available on Claude Pro & Max now"] },
+        { name: "GPT-4.1 Codex", company: "OpenAI", highlight: "First model to help build itself", tag: "⚡ Coding", details: ["25% faster than previous Codex version","First AI used to debug its OWN training and manage its own deployment","Bets on multiple agents in parallel vs single strong agent","Released same day as Opus 4.6 — direct rivalry timing"] }
+      ]
+    },
+    {
+      id: "tools", label: "🛠️ Tools & Apps", color: "#93C5FD",
+      items: [
+        { name: "Perplexity Model Council", company: "Perplexity", highlight: "Run 3 AI models simultaneously & compare", tag: "🔬 Research", details: ["Runs GPT-4.1, Claude Opus, Gemini Pro in parallel on your question","Shows where models agree vs disagree with confidence scores","Deep Research exports to Markdown or Google Drive","Max users now, Pro rolling out soon"] },
+        { name: "NotebookLM Mobile Video", company: "Google", highlight: "AI research videos full-screen on mobile", tag: "📱 Mobile", details: ["AI-generated video overviews now available full-screen on mobile","Rotate phone → immersive landscape video mode","Consume research, notes, documents anywhere, anytime"] },
+        { name: "Claude Co-work + Plugins", company: "Anthropic", highlight: "11 specialist plugin modes for real work", tag: "🏗️ Workflow", details: ["Workspace mode: give Claude a goal, it does the full work","11 plugins: Marketing, Sales, Legal, Finance, Data, Productivity & more","Connectors: Slack, Canva, Figma, HubSpot, Notion","Example: Full 12-slide branded PPT deck generated in ~3 minutes","Outputs finished files — not just suggestions or bullet points"] },
+        { name: "Grok Voice Messages", company: "xAI", highlight: "Voice input on mobile", tag: "🎙️ Voice", details: ["Record voice note → Grok transcribes and responds","No typing needed on mobile","Available now in the Grok app"] }
+      ]
+    },
+    {
+      id: "video", label: "🎬 AI Video & Motion", color: "#F9A8D4",
+      items: [
+        { name: "Kling 3.0", company: "Kling / Hailuo", highlight: "Cinematic AI video — narrative continuity", tag: "🎥 Video", details: ["Multi-shot sequences: consistent characters & style across shots","Native audio with real lip-sync (not voiceover slapped on)","Multilingual dialogue with emotional delivery","15 seconds of continuous generation","Macro close-ups + dynamic camera movement"] },
+        { name: "Vibe Motion", company: "Hailuo", highlight: "Real-time AI motion design tool", tag: "✨ Motion", details: ["Prompt → infographics, logo animations, text effects instantly","Live canvas editing: adjust fonts, colors, transitions in real-time","Logo variations in multiple styles — pick and tweak","Replaces After Effects for most common motion tasks","Unlimited on Hailuo platform"] }
+      ]
+    },
+    {
+      id: "hardware", label: "🔧 Hardware & Infra", color: "#FCD34D",
+      items: [
+        { name: "OpenAI 'Dime' / Sweet Pea", company: "OpenAI + Jony Ive", highlight: "Behind-the-ear AI device — no screen, no phone", tag: "🎧 2026", details: ["Designed by Jony Ive (creator of the iPhone)","Sits behind your ear — voice only, no screen","Runs ChatGPT locally — controls Calendar, Uber, messages by speaking","Foxconn manufacturing — targeting 40–50M units in year one","Audio-only version: late 2026 | Sensor version: later","OpenAI paid $6.5B for Jony Ive's company to build this"] },
+        { name: "SpaceX + xAI Merger", company: "Elon Musk", highlight: "$1.25T — AI data centers in orbit", tag: "🚀 Mega", details: ["Largest merger in history — world's most valuable private company","Bet: orbit = cheapest place to run AI in 2–3 years","Unlimited solar power in space + no cooling problem","SpaceX launches satellites → xAI runs models → Starlink = network","IPO coming this year"] }
+      ]
+    },
+    {
+      id: "quickdrops", label: "🆕 Quick Drops", color: "#C4B5FD",
+      items: [
+        { name: "Crisp AI", company: "Crisp", highlight: "Unified customer support AI", tag: "💬 Support", details: ["Chat, email, WhatsApp, phone all in one workspace","Auto-answers customers + routes tickets intelligently","Keeps human touch when needed — support at scale"] },
+        { name: "v0 by Vercel", company: "Vercel", highlight: "English → full-stack web apps", tag: "💻 Dev", details: ["Describe what you want in plain English","Generates full-stack app: design, code, deploy","Iterate with prompts until it's right"] },
+        { name: "Gen Store", company: "Gen", highlight: "AI-built e-commerce stores", tag: "🛒 E-com", details: ["Launch a complete store in minutes","AI agents handle setup, design, and marketing automation","You focus on selling, they handle the rest"] },
+        { name: "Basel", company: "Basel", highlight: "Data → Beautiful presentation slides", tag: "📊 Data", details: ["Upload messy data → AI cleans, charts, and builds the deck","Rerun on new data instantly for same insights with zero effort"] },
+        { name: "Relay.app", company: "Relay", highlight: "AI agent automation across 100+ apps", tag: "🤖 Agents", details: ["Build AI agents that work across Gmail, Notion, HubSpot & more","Work proactively 24/7 and improve over time"] }
+      ]
+    },
+    {
+      id: "autonomous", label: "🤖 Autonomous Agents", color: "#6EE7F9",
+      items: [
+        { name: "OpenClaw Agent Hackathon", company: "OpenClaw", highlight: "First hackathon with zero human participants", tag: "🏆 Autonomous", details: ["$10,000 prize pool, 1 week duration","AI agents team up, build, and ship — no humans involved","Security: Virus Total scans every skill on ClawHub automatically","Hash fingerprinting + daily rescans on all submissions","First real infrastructure for fully autonomous software development"] }
+      ]
+    }
+  ]
+};
+
+let state = {};
+let activeCategory = "";
+let expandedCard = null;
+let modalMode = "item";
+
+function loadState() {
+  try {
+    const s = localStorage.getItem("ai_toolbox_v2");
+    if (s) { state = JSON.parse(s); }
+    else { state = JSON.parse(JSON.stringify(INITIAL)); }
+  } catch { state = JSON.parse(JSON.stringify(INITIAL)); }
+  if (!state.categories || !state.categories.length) state = JSON.parse(JSON.stringify(INITIAL));
+  activeCategory = state.categories[0].id;
+}
+
+function saveState() {
+  state.lastUpdated = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  localStorage.setItem("ai_toolbox_v2", JSON.stringify(state));
+  showToast();
+}
+
+function showToast() {
+  const t = document.getElementById("toast");
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+function totalItems() { return state.categories.reduce((a, c) => a + c.items.length, 0); }
+
+function renderMeta() {
+  document.getElementById("meta-info").textContent = `Updated: ${state.lastUpdated} · ${totalItems()} entries · ${state.categories.length} categories`;
+}
+
+function renderTabs() {
+  const wrap = document.getElementById("tabs");
+  wrap.innerHTML = state.categories.map(c =>
+    `<button class="tab${c.id === activeCategory ? ' active' : ''}" style="${c.id === activeCategory ? `background:${c.color};border-color:${c.color}` : ''}" onclick="switchTab('${c.id}')">${c.label} <span style="opacity:0.7">(${c.items.length})</span></button>`
+  ).join("");
+}
+
+function switchTab(id) {
+  activeCategory = id;
+  expandedCard = null;
+  document.getElementById("search-input").value = "";
+  renderTabs();
+  renderContent();
+}
+
+function renderContent() {
+  const q = document.getElementById("search-input").value.trim().toLowerCase();
+  const content = document.getElementById("content");
+
+  if (q) {
+    const results = [];
+    state.categories.forEach(c => {
+      c.items.forEach((item, idx) => {
+        const text = [item.name, item.company, item.highlight, item.tag, ...(item.details||[])].join(" ").toLowerCase();
+        if (text.includes(q)) results.push({ item, catId: c.id, catLabel: c.label, catColor: c.color, idx });
+      });
+    });
+    if (!results.length) { content.innerHTML = `<div class="empty">No results for "${q}"</div>`; return; }
+    content.innerHTML = `<div class="results-meta">${results.length} result${results.length>1?'s':''} for "${q}"</div>` +
+      results.map(r => cardHTML(r.item, r.catId, r.idx, r.catColor, true, r.catLabel)).join("");
+    return;
+  }
+
+  const cat = state.categories.find(c => c.id === activeCategory);
+  if (!cat) { content.innerHTML = ""; return; }
+  if (!cat.items.length) { content.innerHTML = `<div class="empty">No entries yet. Tap + to add your first one.</div>`; return; }
+  content.innerHTML = cat.items.map((item, idx) => cardHTML(item, cat.id, idx, cat.color, false)).join("");
+}
+
+function cardHTML(item, catId, idx, color, showCat, catLabel) {
+  const key = `${catId}-${idx}`;
+  const isOpen = expandedCard === key;
+  const detailsHTML = (item.details && item.details.length)
+    ? `<ul>${item.details.map(d => `<li>${escHtml(d)}</li>`).join("")}</ul>` : "";
+  return `<div class="card${isOpen?' open':''}" style="--cat-color:${color}" id="card-${key}">
+    <div class="card-header" onclick="toggleCard('${key}')">
+      <div class="card-left">
+        <div class="card-meta">
+          ${item.tag ? `<span class="card-tag">${escHtml(item.tag)}</span>` : ""}
+          <span class="card-name">${escHtml(item.name)}</span>
+          ${item.company ? `<span class="card-company">· ${escHtml(item.company)}</span>` : ""}
+          ${showCat ? `<span class="search-result-cat">· ${escHtml(catLabel||catId)}</span>` : ""}
+        </div>
+        ${item.highlight ? `<div class="card-highlight">${escHtml(item.highlight)}</div>` : ""}
+      </div>
+      <div class="card-arrow">${isOpen ? "▲" : "▼"}</div>
+    </div>
+    ${isOpen ? `<div class="card-body">${detailsHTML}<button class="btn-delete" onclick="deleteItem('${catId}',${idx})">🗑 Delete</button></div>` : ""}
+  </div>`;
+}
+
+function toggleCard(key) {
+  expandedCard = expandedCard === key ? null : key;
+  renderContent();
+}
+
+function deleteItem(catId, idx) {
+  if (!confirm("Delete this entry?")) return;
+  state.categories = state.categories.map(c =>
+    c.id === catId ? { ...c, items: c.items.filter((_, i) => i !== idx) } : c
+  );
+  expandedCard = null;
+  saveState();
+  renderAll();
+}
+
+function handleSearch() { expandedCard = null; renderContent(); }
+
+function escHtml(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// MODAL
+function openModal() {
+  populateCategorySelect();
+  document.getElementById("modal").style.display = "flex";
+}
+function closeModal() { document.getElementById("modal").style.display = "none"; }
+function handleOverlayClick(e) { if (e.target.id === "modal") closeModal(); }
+
+function switchModalTab(tab) {
+  modalMode = tab;
+  document.getElementById("mtab-item").className = "modal-tab" + (tab==="item"?" active":"");
+  document.getElementById("mtab-cat").className = "modal-tab" + (tab==="cat"?" active":"");
+  document.getElementById("form-item").style.display = tab==="item" ? "" : "none";
+  document.getElementById("form-cat").style.display = tab==="cat" ? "" : "none";
+}
+
+function populateCategorySelect() {
+  const sel = document.getElementById("f-category");
+  sel.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.label}</option>`).join("");
+  sel.value = activeCategory;
+}
+
+function saveItem() {
+  const name = document.getElementById("f-name").value.trim();
+  const catId = document.getElementById("f-category").value;
+  if (!name || !catId) { alert("Name and category are required."); return; }
+  const item = {
+    name,
+    company: document.getElementById("f-company").value.trim(),
+    highlight: document.getElementById("f-highlight").value.trim(),
+    tag: document.getElementById("f-tag").value.trim(),
+    details: document.getElementById("f-details").value.split("\n").map(s=>s.trim()).filter(Boolean)
+  };
+  state.categories = state.categories.map(c => c.id === catId ? { ...c, items: [...c.items, item] } : c);
+  activeCategory = catId;
+  saveState();
+  closeModal();
+  // reset form
+  ["f-name","f-company","f-highlight","f-tag","f-details"].forEach(id => document.getElementById(id).value = "");
+  renderAll();
+}
+
+function saveCategory() {
+  const id = document.getElementById("fc-id").value.trim().replace(/\s+/g,"_");
+  const label = document.getElementById("fc-label").value.trim();
+  const color = document.getElementById("fc-color").value;
+  if (!id || !label) { alert("ID and label are required."); return; }
+  if (state.categories.find(c => c.id === id)) { alert("Category ID already exists."); return; }
+  state.categories.push({ id, label, color, items: [] });
+  activeCategory = id;
+  saveState();
+  closeModal();
+  document.getElementById("fc-id").value = "";
+  document.getElementById("fc-label").value = "";
+  renderAll();
+}
+
+function renderAll() {
+  renderMeta();
+  renderTabs();
+  renderContent();
+}
+
+loadState();
+renderAll();
+</script>
+</body>
+</html>
